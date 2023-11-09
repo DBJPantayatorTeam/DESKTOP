@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pantayator/appdata.dart';
+import 'package:pantayator/pages/records.dart';
 import 'package:provider/provider.dart';
 
 class Lobby extends StatefulWidget {
@@ -25,6 +26,14 @@ class _LobbyState extends State<Lobby> {
           middle: Text(
             'Main Page',
             style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          trailing: GestureDetector(
+            child: Container(
+              child: Icon(CupertinoIcons.list_bullet),
+            ),
+            onTap: () {
+              Navigator.push(context, CupertinoPageRoute(builder: (context) => Records()));
+            },
           ),
         ),
         child: Center(

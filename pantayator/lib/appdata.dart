@@ -7,6 +7,7 @@ class AppData with ChangeNotifier {
   String ip = "";
   String text = "";
   bool connected = false;
+  List<String> messageList = ["Hola","Adios"];
 
   //WebSocket
   IOWebSocketChannel? _server;
@@ -44,10 +45,7 @@ class AppData with ChangeNotifier {
 
   //Mandar missatge per a que ho print
   void showTextMessage() {
-    final msn = {
-      'type': 'show',
-      'value': text
-    };
+    final msn = {'type': 'show', 'value': text};
     _server?.sink.add(jsonEncode(msn));
   }
 }
