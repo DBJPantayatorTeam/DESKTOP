@@ -19,6 +19,7 @@ class _RecordsState extends State<Records> {
     return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
           //Botó per tornar a la pagina anterior
+          middle: Text('Records'),
           leading: GestureDetector(
             child: Container(
               child: Icon(CupertinoIcons.back),
@@ -27,26 +28,68 @@ class _RecordsState extends State<Records> {
               Navigator.pop(context);
             },
           ),
+          trailing: GestureDetector(
+            child: Container(
+              child: Icon(CupertinoIcons.arrow_down_doc),
+            ),
+            onTap: () {
+              appData.saveFile();
+              showCupertinoDialog(
+                context: context,
+                builder: (_) => _saveAlertDialoge(appData),
+                barrierDismissible: true,
+              );
+            },
+          ),
         ),
         child: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: 55,),
-              Text('Message'),
-              Divider(),                                        //Per fer una linea que dividira el titol dels missatges
-              Expanded(
-                child: ListView.builder(                                 //Creara un container amb text per missatge
-                  itemCount: appData.messageList.length,
+              SizedBox(
+                height: 100,
+              ),
+              Text(
+                'Últims Missatges',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(
+                child: Divider(
+                  thickness: 2,
+                ), //Per fer una linea que dividira el titol dels missatges
+                width: 400,
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width / 2.5,
+                height: MediaQuery.of(context).size.height - 136,
+                child: ListView.builder(
+                  //Creara un container amb text per missatge
+                  physics: ClampingScrollPhysics(),
+                  padding: EdgeInsets.all(0),
+                  scrollDirection: Axis.vertical,
+                  itemCount: appData.sortedList.length,
                   itemBuilder: (context, index) {
+                    bool isEven = index % 2 == 0;
                     return Container(
-                      child: Text("${appData.messageList[index]}")
-                    );
+                        color: isEven
+                            ? Color.fromARGB(255, 218, 218, 218)
+                            : Colors.transparent,
+                        constraints: BoxConstraints(minHeight: 30),
+                        alignment: Alignment.center,
+                        child: Text("${appData.sortedList[index]}"));
                   },
                 ),
               ),
             ],
           ),
         ));
+  }
+
+  CupertinoAlertDialog _saveAlertDialoge(AppData appData) {
+    return CupertinoAlertDialog(
+      title: Text('Missatges guardats!'),
+      content: Text('Fitxer guardat en ${appData.savePath}'),
+      actions: [CupertinoDialogAction(child: Text('Ok'), onPressed: () => Navigator.of(context).pop(),)],
+    );
   }
 }

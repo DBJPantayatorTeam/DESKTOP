@@ -28,7 +28,7 @@ class _MyAppState extends State<MyApp> {
         brightness: Brightness.light, // Establece el tema claro por defecto.
       ),
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Crazy Display',
       home: Lobby(),
     );
   }

@@ -24,15 +24,18 @@ class _LobbyState extends State<Lobby> {
     return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
           middle: Text(
-            'Main Page',
+            'Pàgina Principal',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           trailing: GestureDetector(
             child: Container(
-              child: Icon(CupertinoIcons.list_bullet),
+              child: appData.connected ? Icon(CupertinoIcons.list_bullet) : Icon(CupertinoIcons.list_bullet, color: Colors.transparent,),
             ),
             onTap: () {
-              Navigator.push(context, CupertinoPageRoute(builder: (context) => Records()));
+              if (appData.connected == true) {
+                appData.sortedList = appData.sortListByDate(appData.messageList);
+                Navigator.push(context, CupertinoPageRoute(builder: (context) => Records()));
+              }
             },
           ),
         ),
@@ -44,7 +47,7 @@ class _LobbyState extends State<Lobby> {
                 SizedBox(
                   height: 50,
                 ),
-                _createTextField("Missatge", "Hola Mundo", _textController),
+                _createTextField("Missatge", appData.defaultMsnList[appData.r.nextInt(appData.defaultMsnList.length)], _textController),   //Missatge de recomendació aleatori
                 SizedBox(
                   height: 32,
                 ),
