@@ -47,7 +47,12 @@ class AppData with ChangeNotifier {
       //Si dona un error es reinicia tot
       connected = false;
       notifyListeners();
-    });
+    }, onDone: () {
+      //Quan el server es desconecta
+      connected = false;
+      notifyListeners();
+    },
+    );
   }
 
   //Si es vol desconectar del server
