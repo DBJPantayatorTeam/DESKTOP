@@ -29,12 +29,19 @@ class _LobbyState extends State<Lobby> {
           ),
           trailing: GestureDetector(
             child: Container(
-              child: appData.connected ? Icon(CupertinoIcons.list_bullet) : Icon(CupertinoIcons.list_bullet, color: Colors.transparent,),
+              child: appData.connected
+                  ? Icon(CupertinoIcons.list_bullet)
+                  : Icon(
+                      CupertinoIcons.list_bullet,
+                      color: Colors.transparent,
+                    ),
             ),
             onTap: () {
               if (appData.connected == true) {
-                appData.sortedList = appData.sortListByDate(appData.messageList);
-                Navigator.push(context, CupertinoPageRoute(builder: (context) => Records()));
+                appData.sortedList =
+                    appData.sortListByDate(appData.messageList);
+                Navigator.push(context,
+                    CupertinoPageRoute(builder: (context) => Records()));
               }
             },
           ),
@@ -47,7 +54,11 @@ class _LobbyState extends State<Lobby> {
                 SizedBox(
                   height: 50,
                 ),
-                _createTextField("Missatge", appData.defaultMsnList[appData.r.nextInt(appData.defaultMsnList.length)], _textController),   //Missatge de recomendació aleatori
+                _createTextField(
+                    "Missatge",
+                    appData.defaultMsnList[
+                        appData.r.nextInt(appData.defaultMsnList.length)],
+                    _textController), //Missatge de recomendació aleatori
                 SizedBox(
                   height: 32,
                 ),
@@ -64,13 +75,21 @@ class _LobbyState extends State<Lobby> {
                       width: 225,
                       child: CupertinoButton(
                         padding: EdgeInsets.all(5),
-                        child: Text('Connectar'),
-                        color: CupertinoColors.activeBlue,
+                        child: appData.connected
+                            ? Text('Desconectar')
+                            : Text('Connectar'),
+                        color: appData.connected
+                            ? CupertinoColors.activeOrange
+                            : CupertinoColors.activeBlue,
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                         onPressed: () {
                           setState(() {
-                            appData.ip = _ipTextController.text;
-                            appData.connectServer();
+                            if (appData.connected) {
+                              appData.disconnectedFromServer();
+                            } else {
+                              appData.ip = _ipTextController.text;
+                              appData.connectServer(context);
+                            }
                           });
                         },
                       ),

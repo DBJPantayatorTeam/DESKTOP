@@ -27,32 +27,74 @@ class AppData with ChangeNotifier {
   //WebSocket
   IOWebSocketChannel? _server;
 
-  void connectServer() async {
-    _server = IOWebSocketChannel.connect("ws://$ip:8888");
+  void connectServer(BuildContext context) async {
+    if (!connected) {
+      _server = IOWebSocketChannel.connect("ws://$ip:8888");
 
-    //Mandar missatge de la versió de la app que es
-    _server?.sink.add('{"type":"connection", "version": "desktop"}');
+      //Mandar missatge de la versió de la app que es
+      _server?.sink.add('{"type":"connection", "version": "desktop"}');
 
-    //Quan rep un missatge
-    _server!.stream.listen((message) {
-      final data = jsonDecode(message);
+      //Quan rep un missatge
+      _server!.stream.listen(
+        (message) {
+          final data = jsonDecode(message);
 
-      /*
-       * Aqui que fer amb els missatges que rep
-       */
+          switch (data['type']) {
+            case 'conexion':
+              _showSuccessConnectionDialog(context);
+              break;
+          }
 
-      connected = true;
-      notifyListeners();
-    }, onError: (error) {
-      //Si dona un error es reinicia tot
-      connected = false;
-      notifyListeners();
-    }, onDone: () {
-      //Quan el server es desconecta
-      connected = false;
-      notifyListeners();
-    },
-    );
+          connected = true;
+          notifyListeners();
+        },
+        onError: (error) {
+          //Si dona un error es reinicia tot
+          connected = false;
+          _showConnectionErrorDialog(context);
+          notifyListeners();
+        },
+        onDone: () {
+          //Quan el server es desconecta
+          connected = false;
+          notifyListeners();
+        },
+      );
+    }
+  }
+
+  Future<dynamic> _showSuccessConnectionDialog(BuildContext context) {
+    return showCupertinoDialog(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+              title: Text("Success"),
+              content: Text("S'ha conectat correctament"),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text("OK"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                )
+              ],
+            ));
+  }
+
+  Future<dynamic> _showConnectionErrorDialog(BuildContext context) {
+    return showCupertinoDialog(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+              title: Text("Error"),
+              content: Text("No s'ha pogut conectar correctament"),
+              actions: [
+                CupertinoDialogAction(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("OK"))
+              ],
+            ),
+        barrierDismissible: true);
   }
 
   //Si es vol desconectar del server
