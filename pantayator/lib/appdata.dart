@@ -10,7 +10,7 @@ class AppData with ChangeNotifier {
   Random r = new Random();
   String ip = "";
   String text = "";
-  bool connected = false;
+  bool connected = true;
   bool savingFile = false;
   String savePath = "";
   List<String> defaultMsnList = [
@@ -42,6 +42,12 @@ class AppData with ChangeNotifier {
           switch (data['type']) {
             case 'conexion':
               _showSuccessConnectionDialog(context);
+              _showLoginDialog(context);
+              break;
+            case 'login':
+              data['value']
+              ? _showSuccessLogin(context)
+              : _showLoginDialog(context);
               break;
           }
 
@@ -97,6 +103,92 @@ class AppData with ChangeNotifier {
         barrierDismissible: true);
   }
 
+  Future<dynamic> _showSuccessLogin(BuildContext context) {
+    return showCupertinoDialog(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+              title: Text("Login correct"),
+              content: Text("Usuari i contrasenya corrects"),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text("OK"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                )
+              ],
+            ));
+  }
+
+  Future<dynamic> _showErrorLogin(BuildContext context) {
+    return showCupertinoDialog(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+              title: Text("Login incorrect"),
+              content: Text("Usuari i contrasenya incorrects.\nVols tornar a intentar-ho"),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("NO"),
+                ),
+                CupertinoDialogAction(
+                  onPressed: () {
+                    _showLoginDialog(context);
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("SI")
+                  ),
+              ],
+            ));
+  }
+
+  Future<dynamic> _showLoginDialog(BuildContext context) async {
+    TextEditingController userController = TextEditingController();
+    TextEditingController passwordController = TextEditingController();
+
+    return showCupertinoDialog(
+      context: context, 
+      builder: (BuildContext context){
+        return CupertinoAlertDialog(
+          title: Text("LogIn"),
+          content: Column(
+            children: [
+              CupertinoTextField(
+                controller: userController,
+                placeholder: "Usuari",
+              ),
+              CupertinoTextField(
+                controller: passwordController,
+                placeholder: "Contrasenya",
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("Cancelar")
+            ),
+            CupertinoDialogAction(
+              onPressed: () {
+                String user = userController.text;
+                String psswd = passwordController.text;
+                _server?.sink.add('{"type":"login", "user": "$user", "password":"$psswd"}');
+
+                Navigator.of(context).pop();
+              },
+              child: Text("Acceptar")
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   //Si es vol desconectar del server
   disconnectedFromServer() async {
     connected = false;
@@ -121,6 +213,31 @@ class AppData with ChangeNotifier {
       res.add(ogList[i]);
     }
     return res;
+  }
+
+
+  Future<dynamic> showResendConfirmation(BuildContext context, String msg) {
+    return showCupertinoDialog(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+              title: Text("Reenviar missatge"),
+              content: Text("Vols tornar a enviar el misatge:\n $msg"),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text("NO"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                CupertinoDialogAction(
+                  child: Text("SÍ"),
+                  onPressed: () {
+                    _server?.sink.add('{"type":"show", "value":"$msg"}');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ));
   }
 
   //Funcions per guardar/llegir fitxers

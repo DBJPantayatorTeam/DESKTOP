@@ -61,7 +61,7 @@ class _RecordsState extends State<Records> {
               ),
               Container(
                 width: MediaQuery.of(context).size.width / 2.5,
-                height: MediaQuery.of(context).size.height - 136,
+                height: MediaQuery.of(context).size.height - 200,
                 child: ListView.builder(
                   //Creara un container amb text per missatge
                   physics: ClampingScrollPhysics(),
@@ -70,13 +70,18 @@ class _RecordsState extends State<Records> {
                   itemCount: appData.sortedList.length,
                   itemBuilder: (context, index) {
                     bool isEven = index % 2 == 0;
-                    return Container(
-                        color: isEven
-                            ? Color.fromARGB(255, 218, 218, 218)
-                            : Colors.transparent,
-                        constraints: BoxConstraints(minHeight: 30),
-                        alignment: Alignment.center,
-                        child: Text("${appData.sortedList[index]}"));
+                    return GestureDetector(
+                        child: Container(
+                          color: isEven
+                              ? Color.fromARGB(255, 218, 218, 218)
+                              : Colors.transparent,
+                          constraints: BoxConstraints(minHeight: 30),
+                          alignment: Alignment.center,
+                          child: Text("${appData.sortedList[index]}")),
+                        onTap: () {
+                          appData.showResendConfirmation(context, appData.sortedList[index]);
+                        },
+                    );
                   },
                 ),
               ),

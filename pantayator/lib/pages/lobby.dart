@@ -18,7 +18,7 @@ class _LobbyState extends State<Lobby> {
     AppData appData = Provider.of<AppData>(context);
 
     //Per poder controlar els TextFields
-    final _ipTextController = TextEditingController();
+    final _ipTextController = TextEditingController(text: "192.168.0.20");
     final _textController = TextEditingController();
 
     return CupertinoPageScaffold(
@@ -144,7 +144,7 @@ class _LobbyState extends State<Lobby> {
                 borderRadius: BorderRadius.all(Radius.circular(8))),
             padding: EdgeInsets.all(10),
             textAlign: TextAlign.left,
-            placeholder: defaultText,
+            //placeholder: defaultText,
             controller: controller,
           ),
         ),
