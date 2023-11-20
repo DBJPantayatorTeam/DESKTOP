@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,8 +25,9 @@ class AppData with ChangeNotifier {
     "Lo tapó té Tap, Tap i tapó, lo tapó té.",
   ];
   List<String> messageList = [];
-  List<String> sortedList = [];
+  List<String> sortedMessageList = [];
   List<String> imageList = [];
+  List<String> sortedImageList = [];
 
   //WebSocket
   IOWebSocketChannel? _server;
@@ -253,12 +255,14 @@ class AppData with ChangeNotifier {
   }
 
 
-  Future<dynamic> showResendConfirmation(BuildContext context, String msg) {
+  Future<dynamic> showResendConfirmation(BuildContext context, String msg, bool isMessage) {
     return showCupertinoDialog(
         context: context,
         builder: (_) => CupertinoAlertDialog(
-              title: Text("Reenviar missatge"),
-              content: Text("Vols tornar a enviar el misatge:\n $msg"),
+              title: Text(isMessage ? "Reenviar missatge" : "Reenviar Imatge?"),
+              content: isMessage 
+                ? Text("Vols tornar a enviar el misatge:\n $msg")
+                : decodeImage(msg),
               actions: [
                 CupertinoDialogAction(
                   child: Text("No"),
@@ -298,5 +302,14 @@ class AppData with ChangeNotifier {
       savingFile = false;
       notifyListeners();
     }
+  }
+
+  decodeImage(String base64Image) {
+    // Decodificar la imagen desde la cadena base64
+    List<int> bytes = base64.decode(base64Image);
+    Uint8List imageBytes = Uint8List.fromList(bytes);
+
+    // Mostrar la imagen
+    return Image.memory(imageBytes);
   }
 }

@@ -38,8 +38,8 @@ class _LobbyState extends State<Lobby> {
             ),
             onTap: () {
               if (appData.connected == true) {
-                appData.sortedList =
-                    appData.sortListByDate(appData.messageList);
+                appData.sortedMessageList = appData.sortListByDate(appData.messageList);
+                appData.sortedImageList = appData.sortListByDate(appData.imageList);
                 Navigator.push(context,
                     CupertinoPageRoute(builder: (context) => Records()));
               }

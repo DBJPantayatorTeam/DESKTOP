@@ -82,46 +82,66 @@ class _RecordsState extends State<Records> {
               Container(
                 width: MediaQuery.of(context).size.width / 2.5,
                 height: MediaQuery.of(context).size.height - 200,
-                child: ListView.builder(
-                  //Creara un container amb text per missatge
-                  physics: ClampingScrollPhysics(),
-                  padding: EdgeInsets.all(0),
-                  scrollDirection: Axis.vertical,
-                  itemCount: appData.sortedList.length,
-                  itemBuilder: (context, index) {
-                    bool isEven = index % 2 == 0;
-                    return GestureDetector(
-                      child: Container(
-                        color: isEven
-                            ? Color.fromARGB(255, 218, 218, 218)
-                            : Colors.transparent,
-                        constraints: BoxConstraints(minHeight: 30),
-                        alignment: Alignment.center,
-                        child: misatges
-                            ? Text("${appData.sortedList[index]}")
-                            : string64ToImage(appData.imageList[0]),
-                      ),
-                      onTap: () {
-                          appData.showResendConfirmation(context, appData.sortedList[index]);
-                        },
-                    );
-                  },
-                ),
+                child: misatges 
+                  ? ListView.builder(
+                    //Creara un container amb text per missatge
+                    physics: ClampingScrollPhysics(),
+                    padding: EdgeInsets.all(0),
+                    scrollDirection: Axis.vertical,
+                    itemCount: appData.sortedMessageList.length,
+                    itemBuilder: (context, index) {
+                      bool isEven = index % 2 == 0;
+                      return GestureDetector(
+                        child: Container(
+                          color: isEven
+                              ? Color.fromARGB(255, 218, 218, 218)
+                              : Colors.transparent,
+                          constraints: BoxConstraints(minHeight: 30),
+                          alignment: Alignment.center,
+                          child: Text("${appData.sortedMessageList[index]}")
+                        ),
+                        onTap: () {
+                             appData.showResendConfirmation(context, appData.sortedMessageList[index], misatges);
+                          },
+                      );
+                    },
+                  )
+                  : GridView.builder(
+                    //Creara un container amb text per missatge
+                    physics: ClampingScrollPhysics(),
+                    padding: EdgeInsets.all(0),
+                    scrollDirection: Axis.vertical,
+                    itemCount: appData.sortedImageList.length,
+                    gridDelegate:SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 8.0, 
+                      mainAxisSpacing: 8.0, 
+                    ),
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
+                        child: Container(
+                          color: Colors.transparent,
+                          constraints: BoxConstraints(minHeight: 30),
+                          alignment: Alignment.center,
+                          child: SizedBox(
+                            width: 200,
+                            height: 200,
+                            child: appData.decodeImage(appData.sortedImageList[index]),
+                          ),
+                        ),
+                        onTap: () {
+                            appData.showResendConfirmation(context, appData.sortedImageList[index], misatges);
+                          },
+                      );
+                    }, 
+                  )
               ),
             ],
           ),
         ));
   }
 
-  Widget string64ToImage(String base64String) {
-    // Decodificar el String base64 a bytes
-    Uint8List bytes = base64.decode(base64String);
-
-    // Crear un objeto Image.memory con los bytes decodificados
-    Image image = Image.memory(bytes);
-
-    return image;
-  }
+  
 
   CupertinoAlertDialog _saveAlertDialoge(AppData appData) {
     return CupertinoAlertDialog(
