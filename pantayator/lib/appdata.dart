@@ -273,7 +273,9 @@ class AppData with ChangeNotifier {
                 CupertinoDialogAction(
                   child: Text("Sí"),
                   onPressed: () {
-                    _server?.sink.add('{"type":"show", "value":"$msg"}');
+                    isMessage 
+                      ? _server?.sink.add('{"type":"show", "value":"$msg"}')
+                      : _server?.sink.add('{"type":"image", "value": "$msg"}');
                     Navigator.of(context).pop();
                   },
                 ),
