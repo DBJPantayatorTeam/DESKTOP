@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:web_socket_channel/io.dart';
@@ -10,6 +11,7 @@ class AppData with ChangeNotifier {
   Random r = new Random();
   String ip = "";
   String text = "";
+  String imageIn64Bytes = "";
   bool connected = true;
   bool savingFile = false;
   String savePath = "";
@@ -23,6 +25,7 @@ class AppData with ChangeNotifier {
   ];
   List<String> messageList = [];
   List<String> sortedList = [];
+  List<String> imageList = [];
 
   //WebSocket
   IOWebSocketChannel? _server;
@@ -41,17 +44,16 @@ class AppData with ChangeNotifier {
 
           switch (data['type']) {
             case 'conexion':
-              _showSuccessConnectionDialog(context);
               _showLoginDialog(context);
               break;
             case 'login':
               data['value']
               ? _showSuccessLogin(context)
-              : _showLoginDialog(context);
+              : _showErrorLogin(context);
               break;
           }
 
-          connected = true;
+          
           notifyListeners();
         },
         onError: (error) {
@@ -67,23 +69,6 @@ class AppData with ChangeNotifier {
         },
       );
     }
-  }
-
-  Future<dynamic> _showSuccessConnectionDialog(BuildContext context) {
-    return showCupertinoDialog(
-        context: context,
-        builder: (_) => CupertinoAlertDialog(
-              title: Text("Success"),
-              content: Text("S'ha conectat correctament"),
-              actions: [
-                CupertinoDialogAction(
-                  child: Text("OK"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            ));
   }
 
   Future<dynamic> _showConnectionErrorDialog(BuildContext context) {
@@ -104,6 +89,8 @@ class AppData with ChangeNotifier {
   }
 
   Future<dynamic> _showSuccessLogin(BuildContext context) {
+    connected = true;
+    notifyListeners();
     return showCupertinoDialog(
         context: context,
         builder: (_) => CupertinoAlertDialog(
@@ -130,15 +117,16 @@ class AppData with ChangeNotifier {
                 CupertinoDialogAction(
                   onPressed: () {
                     Navigator.of(context).pop();
+                    disconnectedFromServer();
                   },
-                  child: Text("NO"),
+                  child: Text("No"),
                 ),
                 CupertinoDialogAction(
                   onPressed: () {
-                    _showLoginDialog(context);
                     Navigator.of(context).pop();
+                    _showLoginDialog(context);
                   },
-                  child: Text("SI")
+                  child: Text("Sí")
                   ),
               ],
             ));
@@ -155,10 +143,12 @@ class AppData with ChangeNotifier {
           title: Text("LogIn"),
           content: Column(
             children: [
+              SizedBox(height: 15,),
               CupertinoTextField(
                 controller: userController,
                 placeholder: "Usuari",
               ),
+              SizedBox(height: 5,),
               CupertinoTextField(
                 controller: passwordController,
                 placeholder: "Contrasenya",
@@ -169,6 +159,7 @@ class AppData with ChangeNotifier {
           actions: [
             CupertinoDialogAction(
               onPressed: () {
+                disconnectedFromServer();
                 Navigator.of(context).pop();
               },
               child: Text("Cancelar")
@@ -206,6 +197,52 @@ class AppData with ChangeNotifier {
     _server?.sink.add(jsonEncode(msn));
   }
 
+  //Mandar imatge per a que ho print
+  void _sendImage() {
+    if (!imageList.contains(imageIn64Bytes)) {
+      imageList.add(imageIn64Bytes);
+      notifyListeners(); 
+    }
+
+    final msn = {'type': 'image', 'value': imageIn64Bytes};
+    _server?.sink.add(jsonEncode(msn));
+    print("img ok");
+    print(imageIn64Bytes);
+    imageIn64Bytes = "";
+  }
+
+  // Seleccionar imatge
+  Future<String?> pickImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg'],
+    );
+
+    if (result != null) {
+      return result.files.single.path;
+    } else {
+      return null;
+    }
+  }
+
+  void getImageInBytes() async {
+    String? imagePath = await pickImage();
+
+    if (imagePath != null) {
+      File imageFile = File(imagePath);
+
+      List<int> imageBytesList = await imageFile.readAsBytes(); // Lee el contenido de la imagen como bytes
+      String base64String = base64Encode(imageBytesList); // Convierte la lista de bytes a una cadena Base64
+      imageIn64Bytes = base64String;
+
+      _sendImage();
+
+    } else {
+      print('Selección de imagen cancelada');
+    }
+
+  }
+
   List<String> sortListByDate(List<String> ogList) {
     List<String> res = [];
     //Ordenara a la forma inversa (l'ultim de la llista paá a ser el primer)
@@ -224,13 +261,13 @@ class AppData with ChangeNotifier {
               content: Text("Vols tornar a enviar el misatge:\n $msg"),
               actions: [
                 CupertinoDialogAction(
-                  child: Text("NO"),
+                  child: Text("No"),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
                 CupertinoDialogAction(
-                  child: Text("SÍ"),
+                  child: Text("Sí"),
                   onPressed: () {
                     _server?.sink.add('{"type":"show", "value":"$msg"}');
                     Navigator.of(context).pop();

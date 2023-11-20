@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pantayator/appdata.dart';
@@ -11,6 +14,7 @@ class Records extends StatefulWidget {
 }
 
 class _RecordsState extends State<Records> {
+  bool misatges = true;
   @override
   Widget build(BuildContext context) {
     //Per poder accedir-hi a la informació de la AppData
@@ -47,10 +51,26 @@ class _RecordsState extends State<Records> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                height: 100,
+                height: 60,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        misatges = !misatges;
+                      });
+                    },
+                    child: Icon(misatges ? CupertinoIcons.photo : CupertinoIcons.captions_bubble),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 20,
               ),
               Text(
-                'Últims Missatges',
+                misatges ? 'Últims Missatges' : 'Últimes Imatges',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               SizedBox(
@@ -71,14 +91,17 @@ class _RecordsState extends State<Records> {
                   itemBuilder: (context, index) {
                     bool isEven = index % 2 == 0;
                     return GestureDetector(
-                        child: Container(
-                          color: isEven
-                              ? Color.fromARGB(255, 218, 218, 218)
-                              : Colors.transparent,
-                          constraints: BoxConstraints(minHeight: 30),
-                          alignment: Alignment.center,
-                          child: Text("${appData.sortedList[index]}")),
-                        onTap: () {
+                      child: Container(
+                        color: isEven
+                            ? Color.fromARGB(255, 218, 218, 218)
+                            : Colors.transparent,
+                        constraints: BoxConstraints(minHeight: 30),
+                        alignment: Alignment.center,
+                        child: misatges
+                            ? Text("${appData.sortedList[index]}")
+                            : string64ToImage(appData.imageList[0]),
+                      ),
+                      onTap: () {
                           appData.showResendConfirmation(context, appData.sortedList[index]);
                         },
                     );
@@ -88,6 +111,16 @@ class _RecordsState extends State<Records> {
             ],
           ),
         ));
+  }
+
+  Widget string64ToImage(String base64String) {
+    // Decodificar el String base64 a bytes
+    Uint8List bytes = base64.decode(base64String);
+
+    // Crear un objeto Image.memory con los bytes decodificados
+    Image image = Image.memory(bytes);
+
+    return image;
   }
 
   CupertinoAlertDialog _saveAlertDialoge(AppData appData) {

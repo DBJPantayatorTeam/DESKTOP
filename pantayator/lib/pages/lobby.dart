@@ -72,14 +72,14 @@ class _LobbyState extends State<Lobby> {
                   children: [
                     //Botó per connectar
                     Container(
-                      width: 225,
+                      width: 200,
                       child: CupertinoButton(
                         padding: EdgeInsets.all(5),
                         child: appData.connected
-                            ? Text('Desconectar')
+                            ? Text('Desconectar', style: TextStyle(color: CupertinoColors.destructiveRed, fontWeight: FontWeight.bold),)
                             : Text('Connectar'),
                         color: appData.connected
-                            ? CupertinoColors.activeOrange
+                            ? Colors.transparent
                             : CupertinoColors.activeBlue,
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                         onPressed: () {
@@ -97,23 +97,51 @@ class _LobbyState extends State<Lobby> {
                     SizedBox(
                       width: 25,
                     ),
-                    //Botó de enviar missatge, si esta connectat estará verd, si no vermell
-                    Container(
-                      width: 225,
-                      child: CupertinoButton(
+                    Row(
+                      children: [
+                        //Botó de enviar missatge, si esta connectat estará verd, si no vermell
+                        Container(
+                          width: 110,
+                          child: CupertinoButton(
+                              padding: EdgeInsets.all(5),
+                              child: Icon(
+                                CupertinoIcons.captions_bubble
+                              ),
+                              color: appData.connected
+                                  ? CupertinoColors.activeGreen
+                                  : CupertinoColors.destructiveRed,
+                              onPressed: () {
+                                if (appData.connected == true) {
+                                  setState(() {
+                                    appData.text = _textController.text;
+                                    appData.showTextMessage();
+                                  });
+                                }
+                              }),
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        //Botó de enviar imatge, si esta connectat estará verd, si no vermell
+                        Container(
+                        width: 110,
+                        child: CupertinoButton(
                           padding: EdgeInsets.all(5),
-                          child: Text('Enviar Missatge'),
+                          child: Icon(
+                                CupertinoIcons.photo
+                              ),
                           color: appData.connected
                               ? CupertinoColors.activeGreen
                               : CupertinoColors.destructiveRed,
                           onPressed: () {
                             if (appData.connected == true) {
                               setState(() {
-                                appData.text = _textController.text;
-                                appData.showTextMessage();
+                                appData.getImageInBytes();
                               });
                             }
                           }),
+                        )
+                      ],
                     )
                   ],
                 )
