@@ -13,7 +13,7 @@ class AppData with ChangeNotifier {
   String ip = "";
   String text = "";
   String imageIn64Bytes = "";
-  bool connected = true;
+  bool connected = false;
   bool savingFile = false;
   String savePath = "";
   List<String> defaultMsnList = [
