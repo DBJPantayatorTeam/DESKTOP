@@ -22,159 +22,169 @@ class _LobbyState extends State<Lobby> {
     final _textController = TextEditingController();
 
     return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          middle: Text(
-            'Pàgina Principal',
-            style: TextStyle(fontWeight: FontWeight.bold),
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          'Pàgina Principal',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        leading: Container(
+            width: 110,
+            child: CupertinoButton(
+              padding: EdgeInsets.all(5),
+              child: Icon(
+                CupertinoIcons.person_3_fill,
+                color: appData.connected
+                    ? CupertinoColors.activeBlue
+                    : Colors.transparent,
+                size: 24,
+              ),
+              onPressed: () {
+                if (appData.connected == true) {
+                  setState(() {
+                    appData.requestConnectedUserList();
+                  });
+                }
+              },
+            )),
+        trailing: GestureDetector(
+          child: Container(
+            child: appData.connected
+                ? Icon(CupertinoIcons.list_bullet)
+                : Icon(
+                    CupertinoIcons.list_bullet,
+                    color: Colors.transparent,
+                  ),
           ),
-          trailing: GestureDetector(
-            child: Container(
-              child: appData.connected
-                  ? Icon(CupertinoIcons.list_bullet)
-                  : Icon(
-                      CupertinoIcons.list_bullet,
-                      color: Colors.transparent,
+          onTap: () {
+            if (appData.connected == true) {
+              appData.sortedMessageList =
+                  appData.sortListByDate(appData.messageList);
+              appData.sortedImageList =
+                  appData.sortListByDate(appData.imageList);
+              Navigator.push(
+                  context, CupertinoPageRoute(builder: (context) => Records()));
+            }
+          },
+        ),
+      ),
+      child: Center(
+        child: Container(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 50,
+              ),
+              Visibility(
+                visible: appData.connected,
+                child: _createTextField(
+                  "Missatge",
+                  appData.defaultMsnList[
+                      appData.r.nextInt(appData.defaultMsnList.length)],
+                  _textController,
+                ),
+              ),
+              SizedBox(
+                height: 32,
+              ),
+              _createTextField("Conexió IP", "192.168.0.2x", _ipTextController),
+              SizedBox(
+                height: 76,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  //Botó per connectar
+                  Container(
+                    width: 200,
+                    child: CupertinoButton(
+                      padding: EdgeInsets.all(5),
+                      child: appData.connected
+                          ? Text(
+                              'Desconectar',
+                              style: TextStyle(
+                                  color: CupertinoColors.destructiveRed,
+                                  fontWeight: FontWeight.bold),
+                            )
+                          : Text('Connectar'),
+                      color: appData.connected
+                          ? Colors.transparent
+                          : CupertinoColors.activeBlue,
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      onPressed: () {
+                        setState(() {
+                          if (appData.connected) {
+                            appData.disconnectedFromServer();
+                          } else {
+                            appData.ip = _ipTextController.text;
+                            appData.connectServer(context);
+                          }
+                        });
+                      },
                     ),
-            ),
-            onTap: () {
-              if (appData.connected == true) {
-                appData.sortedMessageList =
-                    appData.sortListByDate(appData.messageList);
-                appData.sortedImageList =
-                    appData.sortListByDate(appData.imageList);
-                Navigator.push(context,
-                    CupertinoPageRoute(builder: (context) => Records()));
-              }
-            },
+                  ),
+                  SizedBox(
+                    width: 25,
+                  ),
+                  Row(
+                    children: [
+                      //Botó de enviar missatge, si esta connectat estará verd, si no vermell
+                      Container(
+                        width: 110,
+                        child: CupertinoButton(
+                            padding: EdgeInsets.all(5),
+                            child: Icon(CupertinoIcons.captions_bubble),
+                            color: appData.connected
+                                ? CupertinoColors.activeGreen
+                                : CupertinoColors.destructiveRed,
+                            onPressed: () {
+                              if (appData.connected == true) {
+                                setState(() {
+                                  appData.text = _textController.text;
+                                  appData.showTextMessage();
+                                });
+                              }
+                            }),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      //Botó de enviar imatge, si esta connectat estará verd, si no vermell
+                      Container(
+                        width: 110,
+                        child: CupertinoButton(
+                            padding: EdgeInsets.all(5),
+                            child: Icon(CupertinoIcons.photo),
+                            color: appData.connected
+                                ? CupertinoColors.activeGreen
+                                : CupertinoColors.destructiveRed,
+                            onPressed: () {
+                              if (appData.connected == true) {
+                                setState(() {
+                                  appData.getImageInBytes();
+                                });
+                              }
+                            }),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                    ],
+                  )
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 50.0),
+                child: Text(
+                  appData.message,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                ),
+              ),
+            ],
           ),
         ),
-        child: Center(
-          child: Container(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 50,
-                ),
-                Visibility(
-                  visible: appData.connected,
-                  child: _createTextField(
-                    "Missatge",
-                    appData.defaultMsnList[
-                        appData.r.nextInt(appData.defaultMsnList.length)],
-                    _textController,
-                  ),
-                ),
-                SizedBox(
-                  height: 32,
-                ),
-                _createTextField(
-                    "Conexió IP", "192.168.0.2x", _ipTextController),
-                SizedBox(
-                  height: 76,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    //Botó per connectar
-                    Container(
-                      width: 200,
-                      child: CupertinoButton(
-                        padding: EdgeInsets.all(5),
-                        child: appData.connected
-                            ? Text(
-                                'Desconectar',
-                                style: TextStyle(
-                                    color: CupertinoColors.destructiveRed,
-                                    fontWeight: FontWeight.bold),
-                              )
-                            : Text('Connectar'),
-                        color: appData.connected
-                            ? Colors.transparent
-                            : CupertinoColors.activeBlue,
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                        onPressed: () {
-                          setState(() {
-                            if (appData.connected) {
-                              appData.disconnectedFromServer();
-                            } else {
-                              appData.ip = _ipTextController.text;
-                              appData.connectServer(context);
-                            }
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: 25,
-                    ),
-                    Row(
-                      children: [
-                        //Botó de enviar missatge, si esta connectat estará verd, si no vermell
-                        Container(
-                          width: 110,
-                          child: CupertinoButton(
-                              padding: EdgeInsets.all(5),
-                              child: Icon(CupertinoIcons.captions_bubble),
-                              color: appData.connected
-                                  ? CupertinoColors.activeGreen
-                                  : CupertinoColors.destructiveRed,
-                              onPressed: () {
-                                if (appData.connected == true) {
-                                  setState(() {
-                                    appData.text = _textController.text;
-                                    appData.showTextMessage();
-                                  });
-                                }
-                              }),
-                        ),
-                        SizedBox(
-                          width: 5,
-                        ),
-                        //Botó de enviar imatge, si esta connectat estará verd, si no vermell
-                        Container(
-                          width: 110,
-                          child: CupertinoButton(
-                              padding: EdgeInsets.all(5),
-                              child: Icon(CupertinoIcons.photo),
-                              color: appData.connected
-                                  ? CupertinoColors.activeGreen
-                                  : CupertinoColors.destructiveRed,
-                              onPressed: () {
-                                if (appData.connected == true) {
-                                  setState(() {
-                                    appData.getImageInBytes();
-                                  });
-                                }
-                              }),
-                        ),
-                        SizedBox(
-                          width: 5,
-                        ),
-                        Container(
-                            width: 110,
-                            child: CupertinoButton(
-                              padding: EdgeInsets.all(5),
-                              child: Icon(CupertinoIcons.person_3_fill),
-                              color: appData.connected
-                                  ? CupertinoColors.activeGreen
-                                  : CupertinoColors.destructiveRed,
-                              onPressed: () {
-                                if (appData.connected == true) {
-                                  setState(() {
-                                    appData.requestConnectedUserList();
-                                  });
-                                }
-                              },
-                            ))
-                      ],
-                    )
-                  ],
-                )
-              ],
-            ),
-          ),
-        ));
+      ),
+    );
   }
 
   //Amb aquesta funció creem un TextField i el seu titol

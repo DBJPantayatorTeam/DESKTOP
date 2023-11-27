@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'dart:async'; //
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,9 +17,12 @@ class AppData with ChangeNotifier {
   String ip = "";
   String text = "";
   String imageIn64Bytes = "";
+
+  String message = ""; //
   bool connected = false;
   bool savingFile = false;
   String savePath = "";
+  String userName = "";
   List<String> defaultMsnList = [
     "Hello World",
     "Ploure, prou plou, pero plou poc",
@@ -38,6 +42,7 @@ class AppData with ChangeNotifier {
 
   void connectServer(BuildContext context) async {
     if (!connected) {
+      updateMessage("conectando");
       _server = IOWebSocketChannel.connect("ws://$ip:8888");
 
       //Mandar missatge de la versió de la app que es
@@ -49,6 +54,7 @@ class AppData with ChangeNotifier {
           final data = jsonDecode(message);
           switch (data['type']) {
             case 'conexion':
+              message = "aidos";
               _showLoginDialog(context);
               break;
             case 'login':
@@ -60,23 +66,18 @@ class AppData with ChangeNotifier {
               handleUsersOnline(context, data['value']);
               break;
             case 'disconnection':
-              /*
-              Aviso de que alguien se desconecto
-              {'type': 'disconnection', 'value': totalConnectionsNumber} 
-              Toast: "S'ha desconectat un usuari. Total de conexions: x"
-              */
+              String newMessage = "";
+              updateMessage("S'ha desconectat un usuari. Total de conexions: " +
+                  data['value'].toString());
               break;
             case 'connection':
-              /*
-              {'type': 'connection', 'value': totalConnectionsNumber} 
-              Toast: "S'ha conectat un usuari. Total de conexions: x
-              */
+              updateMessage("S'ha conectat un usuari. Total de conexions: " +
+                  data['value'].toString());
               break;
             case 'sendMessage':
-              /*
-              {'type': 'sendMessage', 'value': userName} 
-              Toast: "L'usuari x ha mandat un missatge
-              */
+              updateMessage("L'usuari " +
+                  data['value'].toString() +
+                  " ha mandat un missatge");
               break;
           }
           notifyListeners();
@@ -198,6 +199,7 @@ class AppData with ChangeNotifier {
                   String psswd = passwordController.text;
                   _server?.sink.add(
                       '{"type":"login", "user": "$user", "password":"$psswd"}');
+                  userName = user;
                   Navigator.of(context).pop();
                 },
                 child: Text("Acceptar")),
@@ -254,7 +256,7 @@ class AppData with ChangeNotifier {
     if (!messageList.contains(text)) {
       messageList.add(text);
     }
-    final msn = {'type': 'show', 'value': text};
+    final msn = {'type': 'show', 'value': text, 'user': userName};
     _server?.sink.add(jsonEncode(msn));
   }
 
@@ -400,5 +402,16 @@ class AppData with ChangeNotifier {
 
     _showUsersList(context);
     notifyListeners();
+  }
+
+  void showServerMessage(String message) {}
+
+  void updateMessage(String newMessage) {
+    message = newMessage;
+    notifyListeners(); // Notificar a los listeners que la variable ha cambiado
+    Timer(Duration(seconds: 3), () {
+      message = "";
+      notifyListeners();
+    });
   }
 }
