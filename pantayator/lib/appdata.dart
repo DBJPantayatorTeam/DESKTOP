@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:pantayator/TableRowData.dart';
+import 'package:pantayator/snackBar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:web_socket_channel/io.dart';
 
@@ -28,6 +31,7 @@ class AppData with ChangeNotifier {
   List<String> sortedMessageList = [];
   List<String> imageList = [];
   List<String> sortedImageList = [];
+  List<TableRowData> userList = [];
 
   //WebSocket
   IOWebSocketChannel? _server;
@@ -43,19 +47,38 @@ class AppData with ChangeNotifier {
       _server!.stream.listen(
         (message) {
           final data = jsonDecode(message);
-
           switch (data['type']) {
             case 'conexion':
               _showLoginDialog(context);
               break;
             case 'login':
               data['value']
-              ? _showSuccessLogin(context)
-              : _showErrorLogin(context);
+                  ? _showSuccessLogin(context)
+                  : _showErrorLogin(context);
+              break;
+            case 'usersOnline':
+              handleUsersOnline(context, data['value']);
+              break;
+            case 'disconnection':
+              /*
+              Aviso de que alguien se desconecto
+              {'type': 'disconnection', 'value': totalConnectionsNumber} 
+              Toast: "S'ha desconectat un usuari. Total de conexions: x"
+              */
+              break;
+            case 'connection':
+              /*
+              {'type': 'connection', 'value': totalConnectionsNumber} 
+              Toast: "S'ha conectat un usuari. Total de conexions: x
+              */
+              break;
+            case 'sendMessage':
+              /*
+              {'type': 'sendMessage', 'value': userName} 
+              Toast: "L'usuari x ha mandat un missatge
+              */
               break;
           }
-
-          
           notifyListeners();
         },
         onError: (error) {
@@ -114,7 +137,8 @@ class AppData with ChangeNotifier {
         context: context,
         builder: (_) => CupertinoAlertDialog(
               title: Text("Login incorrect"),
-              content: Text("Usuari i contrasenya incorrects.\nVols tornar a intentar-ho"),
+              content: Text(
+                  "Usuari i contrasenya incorrects.\nVols tornar a intentar-ho"),
               actions: [
                 CupertinoDialogAction(
                   onPressed: () {
@@ -124,12 +148,11 @@ class AppData with ChangeNotifier {
                   child: Text("No"),
                 ),
                 CupertinoDialogAction(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _showLoginDialog(context);
-                  },
-                  child: Text("Sí")
-                  ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _showLoginDialog(context);
+                    },
+                    child: Text("Sí")),
               ],
             ));
   }
@@ -139,18 +162,22 @@ class AppData with ChangeNotifier {
     TextEditingController passwordController = TextEditingController();
 
     return showCupertinoDialog(
-      context: context, 
-      builder: (BuildContext context){
+      context: context,
+      builder: (BuildContext context) {
         return CupertinoAlertDialog(
           title: Text("LogIn"),
           content: Column(
             children: [
-              SizedBox(height: 15,),
+              SizedBox(
+                height: 15,
+              ),
               CupertinoTextField(
                 controller: userController,
                 placeholder: "Usuari",
               ),
-              SizedBox(height: 5,),
+              SizedBox(
+                height: 5,
+              ),
               CupertinoTextField(
                 controller: passwordController,
                 placeholder: "Contrasenya",
@@ -160,21 +187,53 @@ class AppData with ChangeNotifier {
           ),
           actions: [
             CupertinoDialogAction(
-              onPressed: () {
-                disconnectedFromServer();
-                Navigator.of(context).pop();
+                onPressed: () {
+                  disconnectedFromServer();
+                  Navigator.of(context).pop();
+                },
+                child: Text("Cancelar")),
+            CupertinoDialogAction(
+                onPressed: () {
+                  String user = userController.text;
+                  String psswd = passwordController.text;
+                  _server?.sink.add(
+                      '{"type":"login", "user": "$user", "password":"$psswd"}');
+                  Navigator.of(context).pop();
+                },
+                child: Text("Acceptar")),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<dynamic> _showUsersList(BuildContext context) {
+    return showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: Text('Lista de Usuarios'),
+          content: Container(
+            height: 300, // Ajusta la altura según tus necesidades
+            child: ListView.builder(
+              itemCount: userList.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: CupertinoListTile(
+                      title: Text('${userList[index].name}'),
+                      subtitle:
+                          Text('Dispositiu: ${userList[index].application}'),
+                    ));
               },
-              child: Text("Cancelar")
             ),
+          ),
+          actions: [
             CupertinoDialogAction(
               onPressed: () {
-                String user = userController.text;
-                String psswd = passwordController.text;
-                _server?.sink.add('{"type":"login", "user": "$user", "password":"$psswd"}');
-
                 Navigator.of(context).pop();
               },
-              child: Text("Acceptar")
+              child: Text('Tancar'),
             ),
           ],
         );
@@ -203,7 +262,7 @@ class AppData with ChangeNotifier {
   void _sendImage() {
     if (!imageList.contains(imageIn64Bytes)) {
       imageList.add(imageIn64Bytes);
-      notifyListeners(); 
+      notifyListeners();
     }
 
     final msn = {'type': 'image', 'value': imageIn64Bytes};
@@ -233,16 +292,16 @@ class AppData with ChangeNotifier {
     if (imagePath != null) {
       File imageFile = File(imagePath);
 
-      List<int> imageBytesList = await imageFile.readAsBytes(); // Lee el contenido de la imagen como bytes
-      String base64String = base64Encode(imageBytesList); // Convierte la lista de bytes a una cadena Base64
+      List<int> imageBytesList = await imageFile
+          .readAsBytes(); // Lee el contenido de la imagen como bytes
+      String base64String = base64Encode(
+          imageBytesList); // Convierte la lista de bytes a una cadena Base64
       imageIn64Bytes = base64String;
 
       _sendImage();
-
     } else {
       print('Selección de imagen cancelada');
     }
-
   }
 
   List<String> sortListByDate(List<String> ogList) {
@@ -254,15 +313,15 @@ class AppData with ChangeNotifier {
     return res;
   }
 
-
-  Future<dynamic> showResendConfirmation(BuildContext context, String msg, bool isMessage) {
+  Future<dynamic> showResendConfirmation(
+      BuildContext context, String msg, bool isMessage) {
     return showCupertinoDialog(
         context: context,
         builder: (_) => CupertinoAlertDialog(
               title: Text(isMessage ? "Reenviar missatge" : "Reenviar Imatge?"),
-              content: isMessage 
-                ? Text("Vols tornar a enviar el misatge:\n $msg")
-                : decodeImage(msg),
+              content: isMessage
+                  ? Text("Vols tornar a enviar el misatge:\n $msg")
+                  : decodeImage(msg),
               actions: [
                 CupertinoDialogAction(
                   child: Text("No"),
@@ -273,9 +332,10 @@ class AppData with ChangeNotifier {
                 CupertinoDialogAction(
                   child: Text("Sí"),
                   onPressed: () {
-                    isMessage 
-                      ? _server?.sink.add('{"type":"show", "value":"$msg"}')
-                      : _server?.sink.add('{"type":"image", "value": "$msg"}');
+                    isMessage
+                        ? _server?.sink.add('{"type":"show", "value":"$msg"}')
+                        : _server?.sink
+                            .add('{"type":"image", "value": "$msg"}');
                     Navigator.of(context).pop();
                   },
                 ),
@@ -313,5 +373,32 @@ class AppData with ChangeNotifier {
 
     // Mostrar la imagen
     return Image.memory(imageBytes);
+  }
+
+  //Peticion de usuarios conectados
+  void requestConnectedUserList() {
+    final msn = {'type': 'usersList'};
+    _server?.sink.add(jsonEncode(msn));
+  }
+
+  void handleUsersOnline(BuildContext context, List<dynamic> data) {
+    userList = [];
+
+    for (var item in data) {
+      // Recorremos la lista de usuarios y sus datos
+      String userId = item.keys.first;
+      Map<String, dynamic> userData = item[userId];
+
+      // Extraemos la información del usuario
+      String name = userData["usuario"];
+      String application = userData["plataforma"];
+
+      // Creamos un objeto TableRowData y lo agregamos a la lista
+      TableRowData rowData = TableRowData(name: name, application: application);
+      userList.add(rowData);
+    }
+
+    _showUsersList(context);
+    notifyListeners();
   }
 }

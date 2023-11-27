@@ -62,7 +62,9 @@ class _RecordsState extends State<Records> {
                         misatges = !misatges;
                       });
                     },
-                    child: Icon(misatges ? CupertinoIcons.photo : CupertinoIcons.captions_bubble),
+                    child: Icon(misatges
+                        ? CupertinoIcons.photo
+                        : CupertinoIcons.captions_bubble),
                   ),
                 ],
               ),
@@ -80,74 +82,80 @@ class _RecordsState extends State<Records> {
                 width: 400,
               ),
               Container(
-                width: MediaQuery.of(context).size.width / 2.5,
-                height: MediaQuery.of(context).size.height - 200,
-                child: misatges 
-                  ? ListView.builder(
-                    //Creara un container amb text per missatge
-                    physics: ClampingScrollPhysics(),
-                    padding: EdgeInsets.all(0),
-                    scrollDirection: Axis.vertical,
-                    itemCount: appData.sortedMessageList.length,
-                    itemBuilder: (context, index) {
-                      bool isEven = index % 2 == 0;
-                      return GestureDetector(
-                        child: Container(
-                          color: isEven
-                              ? Color.fromARGB(255, 218, 218, 218)
-                              : Colors.transparent,
-                          constraints: BoxConstraints(minHeight: 30),
-                          alignment: Alignment.center,
-                          child: Text("${appData.sortedMessageList[index]}")
-                        ),
-                        onTap: () {
-                             appData.showResendConfirmation(context, appData.sortedMessageList[index], misatges);
+                  width: MediaQuery.of(context).size.width / 2.5,
+                  height: MediaQuery.of(context).size.height - 200,
+                  child: misatges
+                      ? ListView.builder(
+                          //Creara un container amb text per missatge
+                          physics: ClampingScrollPhysics(),
+                          padding: EdgeInsets.all(0),
+                          scrollDirection: Axis.vertical,
+                          itemCount: appData.sortedMessageList.length,
+                          itemBuilder: (context, index) {
+                            bool isEven = index % 2 == 0;
+                            return GestureDetector(
+                              child: Container(
+                                  color: isEven
+                                      ? Color.fromARGB(255, 218, 218, 218)
+                                      : Colors.transparent,
+                                  constraints: BoxConstraints(minHeight: 30),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                      "${appData.sortedMessageList[index]}")),
+                              onTap: () {
+                                appData.showResendConfirmation(context,
+                                    appData.sortedMessageList[index], misatges);
+                              },
+                            );
                           },
-                      );
-                    },
-                  )
-                  : GridView.builder(
-                    //Creara un container amb text per missatge
-                    physics: ClampingScrollPhysics(),
-                    padding: EdgeInsets.all(0),
-                    scrollDirection: Axis.vertical,
-                    itemCount: appData.sortedImageList.length,
-                    gridDelegate:SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 8.0, 
-                      mainAxisSpacing: 8.0, 
-                    ),
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        child: Container(
-                          color: Colors.transparent,
-                          constraints: BoxConstraints(minHeight: 30),
-                          alignment: Alignment.center,
-                          child: SizedBox(
-                            width: 200,
-                            height: 200,
-                            child: appData.decodeImage(appData.sortedImageList[index]),
+                        )
+                      : GridView.builder(
+                          //Creara un container amb text per missatge
+                          physics: ClampingScrollPhysics(),
+                          padding: EdgeInsets.all(0),
+                          scrollDirection: Axis.vertical,
+                          itemCount: appData.sortedImageList.length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            crossAxisSpacing: 8.0,
+                            mainAxisSpacing: 8.0,
                           ),
-                        ),
-                        onTap: () {
-                            appData.showResendConfirmation(context, appData.sortedImageList[index], misatges);
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              child: Container(
+                                color: Colors.transparent,
+                                constraints: BoxConstraints(minHeight: 30),
+                                alignment: Alignment.center,
+                                child: SizedBox(
+                                  width: 200,
+                                  height: 200,
+                                  child: appData.decodeImage(
+                                      appData.sortedImageList[index]),
+                                ),
+                              ),
+                              onTap: () {
+                                appData.showResendConfirmation(context,
+                                    appData.sortedImageList[index], misatges);
+                              },
+                            );
                           },
-                      );
-                    }, 
-                  )
-              ),
+                        )),
             ],
           ),
         ));
   }
 
-  
-
   CupertinoAlertDialog _saveAlertDialoge(AppData appData) {
     return CupertinoAlertDialog(
       title: Text('Missatges guardats!'),
       content: Text('Fitxer guardat en ${appData.savePath}'),
-      actions: [CupertinoDialogAction(child: Text('Ok'), onPressed: () => Navigator.of(context).pop(),)],
+      actions: [
+        CupertinoDialogAction(
+          child: Text('Ok'),
+          onPressed: () => Navigator.of(context).pop(),
+        )
+      ],
     );
   }
 }

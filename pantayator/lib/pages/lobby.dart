@@ -38,8 +38,10 @@ class _LobbyState extends State<Lobby> {
             ),
             onTap: () {
               if (appData.connected == true) {
-                appData.sortedMessageList = appData.sortListByDate(appData.messageList);
-                appData.sortedImageList = appData.sortListByDate(appData.imageList);
+                appData.sortedMessageList =
+                    appData.sortListByDate(appData.messageList);
+                appData.sortedImageList =
+                    appData.sortListByDate(appData.imageList);
                 Navigator.push(context,
                     CupertinoPageRoute(builder: (context) => Records()));
               }
@@ -54,11 +56,15 @@ class _LobbyState extends State<Lobby> {
                 SizedBox(
                   height: 50,
                 ),
-                _createTextField(
+                Visibility(
+                  visible: appData.connected,
+                  child: _createTextField(
                     "Missatge",
                     appData.defaultMsnList[
                         appData.r.nextInt(appData.defaultMsnList.length)],
-                    _textController), //Missatge de recomendació aleatori
+                    _textController,
+                  ),
+                ),
                 SizedBox(
                   height: 32,
                 ),
@@ -76,7 +82,12 @@ class _LobbyState extends State<Lobby> {
                       child: CupertinoButton(
                         padding: EdgeInsets.all(5),
                         child: appData.connected
-                            ? Text('Desconectar', style: TextStyle(color: CupertinoColors.destructiveRed, fontWeight: FontWeight.bold),)
+                            ? Text(
+                                'Desconectar',
+                                style: TextStyle(
+                                    color: CupertinoColors.destructiveRed,
+                                    fontWeight: FontWeight.bold),
+                              )
                             : Text('Connectar'),
                         color: appData.connected
                             ? Colors.transparent
@@ -104,9 +115,7 @@ class _LobbyState extends State<Lobby> {
                           width: 110,
                           child: CupertinoButton(
                               padding: EdgeInsets.all(5),
-                              child: Icon(
-                                CupertinoIcons.captions_bubble
-                              ),
+                              child: Icon(CupertinoIcons.captions_bubble),
                               color: appData.connected
                                   ? CupertinoColors.activeGreen
                                   : CupertinoColors.destructiveRed,
@@ -124,23 +133,40 @@ class _LobbyState extends State<Lobby> {
                         ),
                         //Botó de enviar imatge, si esta connectat estará verd, si no vermell
                         Container(
-                        width: 110,
-                        child: CupertinoButton(
-                          padding: EdgeInsets.all(5),
-                          child: Icon(
-                                CupertinoIcons.photo
-                              ),
-                          color: appData.connected
-                              ? CupertinoColors.activeGreen
-                              : CupertinoColors.destructiveRed,
-                          onPressed: () {
-                            if (appData.connected == true) {
-                              setState(() {
-                                appData.getImageInBytes();
-                              });
-                            }
-                          }),
-                        )
+                          width: 110,
+                          child: CupertinoButton(
+                              padding: EdgeInsets.all(5),
+                              child: Icon(CupertinoIcons.photo),
+                              color: appData.connected
+                                  ? CupertinoColors.activeGreen
+                                  : CupertinoColors.destructiveRed,
+                              onPressed: () {
+                                if (appData.connected == true) {
+                                  setState(() {
+                                    appData.getImageInBytes();
+                                  });
+                                }
+                              }),
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        Container(
+                            width: 110,
+                            child: CupertinoButton(
+                              padding: EdgeInsets.all(5),
+                              child: Icon(CupertinoIcons.person_3_fill),
+                              color: appData.connected
+                                  ? CupertinoColors.activeGreen
+                                  : CupertinoColors.destructiveRed,
+                              onPressed: () {
+                                if (appData.connected == true) {
+                                  setState(() {
+                                    appData.requestConnectedUserList();
+                                  });
+                                }
+                              },
+                            ))
                       ],
                     )
                   ],
